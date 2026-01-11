@@ -5,7 +5,12 @@ function fixRedirectUrl(url) {
     */
   if (!url || url.startsWith("about:")) {
     return browser.runtime.getURL("home/index.html");
+  } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    // Ensure the URL starts with http:// or https://
+    return `https://${url}`;
   }
+
+  return url;
 }
 
 // Function to get the default homepage from storage
@@ -19,6 +24,11 @@ function getDefaultHomepage() {
 
 function homePageAlreadyOpen(tabs, homepageUrl) {
   return tabs.some((tab) => tab.url === homepageUrl);
+}
+
+function isHomepageUrl(url) {
+  const homepageUrl = browser.runtime.getURL("home/index.html");
+  return url === homepageUrl;
 }
 
 async function createHomepageTab(
@@ -71,24 +81,50 @@ async function checkNoActiveTab(tabToExclude = null) {
   return allRealTabs.length === 0;
 }
 
+// Track tab URLs to know which one was closed
+const tabUrlCache = new Map();
+
+browser.tabs.onCreated.addListener((tab) => {
+  if (tab.url) {
+    tabUrlCache.set(tab.id, tab.url);
+  }
+});
+
 // Listen for tab updates
-browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.active) {
-    const noActiveTab = await checkNoActiveTab();
-    if (noActiveTab) {
-      const defaultHomepage = await getDefaultHomepage();
-      createHomepageTab(defaultHomepage, tab.windowId);
-    }
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Update URL cache
+  if (changeInfo.url) {
+    tabUrlCache.set(tabId, changeInfo.url);
+  }
+
+  // Only check for no active tabs if a non-homepage tab completed loading
+  if (
+    changeInfo.status === "complete" &&
+    tab.active &&
+    !isHomepageUrl(tab.url)
+  ) {
+    checkNoActiveTab().then((noActiveTab) => {
+      if (noActiveTab) {
+        getDefaultHomepage().then((defaultHomepage) => {
+          createHomepageTab(defaultHomepage, tab.windowId);
+        });
+      }
+    });
   }
 });
 
 // Listen for tab deletions
 browser.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   console.log("Tab removed:", tabId, removeInfo);
+
+  // Clean up cache
+  tabUrlCache.delete(tabId);
+
   const noActiveTab = await checkNoActiveTab({
     id: tabId,
     windowId: removeInfo.windowId,
   });
+
   if (noActiveTab) {
     const defaultHomepage = await getDefaultHomepage();
     createHomepageTab(defaultHomepage, removeInfo.windowId, true);
@@ -96,7 +132,9 @@ browser.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
 });
 
 // Check and redirect a tab if its URL is empty or invalid
-browser.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
+// Add a delay to avoid conflicts with chrome_url_overrides.newtab
+setTimeout(async () => {
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   if (tabs.length > 0) {
     const noActiveTab = await checkNoActiveTab(tabs[0]);
     if (noActiveTab) {
@@ -104,7 +142,7 @@ browser.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
       createHomepageTab(defaultHomepage, tabs[0].windowId);
     }
   }
-});
+}, 500);
 
 // Listen for storage changes
 browser.storage.onChanged.addListener((changes, areaName) => {

@@ -29,18 +29,22 @@ async function getFaviconUrl(url) {
     const domain = new URL(url).hostname;
     const firstFavicon = `https://favicon.vemetric.com/${domain}`;
 
-    const response = await fetch(firstFavicon).then((res) => res.text());
+    // const response = await fetch(firstFavicon).then((res) => res.text());
 
-    // Means its an the default favicon, try another service
-    if (
-      response &&
-      response.includes(
-        "M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"
-      )
-    ) {
-      const secondFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-      return secondFavicon;
-    }
+    // // Means its an the default favicon, try another service
+    // if (
+    //   response &&
+    //   response.includes(
+    //     "M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"
+    //   )
+    // ) {
+    //   const secondFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    //   // Check if second favicon is valid
+    //   const secondResponse = await fetch(secondFavicon).then((res) =>
+    //     res.blob()
+    //   );
+    //   return secondFavicon;
+    // }
 
     return firstFavicon;
   } catch {
