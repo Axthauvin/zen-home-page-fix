@@ -4,6 +4,9 @@
   "author": "Axel Thauvin",
   "version": "1.0",
   "description": "Replace the Zen 'blank page' with a customizable homepage.",
+  "chrome_url_overrides": {
+    "newtab": "home/index.html"
+  },
   "background": {
     "scripts": ["src/background.js"],
     "persistent": false
@@ -24,6 +27,9 @@
     "128": "icons/favicon-128x128.png"
   },
   "browser_specific_settings": {
-    "gecko": { "id": "{031f023d-9f90-4ee6-8b1f-3e9ae54b7473}" }
+    "gecko": { "id": "{031f023d-9f90-4ee6-8b1f-3e9ae54b7473}" },
+    "data_collection_permissions": {
+      "required": ["none"]
+    }
   }
 }

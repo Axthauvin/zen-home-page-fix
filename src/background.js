@@ -17,6 +17,34 @@ function getDefaultHomepage() {
   });
 }
 
+function homePageAlreadyOpen(tabs, homepageUrl) {
+  return tabs.some((tab) => tab.url === homepageUrl);
+}
+
+async function createHomepageTab(
+  homepageUrl,
+  windowId = null,
+  createHomePageWhatever = false
+) {
+  const createProperties = { url: homepageUrl };
+  if (windowId !== null) {
+    createProperties.windowId = windowId;
+  }
+
+  const tabsPromise = await getAllTabs(windowId);
+
+  if (
+    !createHomePageWhatever &&
+    homePageAlreadyOpen(tabsPromise, homepageUrl)
+  ) {
+    return;
+  }
+
+  console.log("Opening new homepage tab with:", createProperties);
+
+  browser.tabs.create(createProperties);
+}
+
 function getAllTabs(windowId = null) {
   // If windowId is provided, get tabs only from that window
   if (windowId !== null) {
@@ -30,8 +58,13 @@ function getAllTabs(windowId = null) {
 async function checkNoActiveTab(tabToExclude = null) {
   const windowId = tabToExclude?.windowId || null;
   const allTabs = await getAllTabs(windowId);
+  const homepageUrl = browser.runtime.getURL("home/index.html");
+
   const allRealTabs = allTabs.filter(
-    (tab) => tab.pinned === false && tab.id !== tabToExclude?.id
+    (tab) =>
+      tab.pinned === false &&
+      tab.id !== tabToExclude?.id &&
+      tab.url !== homepageUrl
   );
   console.log("Number of real tabs in window:", allRealTabs.length);
   console.log("Real tabs:", allRealTabs);
@@ -44,23 +77,21 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const noActiveTab = await checkNoActiveTab();
     if (noActiveTab) {
       const defaultHomepage = await getDefaultHomepage();
-      browser.tabs.create({ url: defaultHomepage, windowId: tab.windowId });
+      createHomepageTab(defaultHomepage, tab.windowId);
     }
   }
 });
 
 // Listen for tab deletions
 browser.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
+  console.log("Tab removed:", tabId, removeInfo);
   const noActiveTab = await checkNoActiveTab({
     id: tabId,
     windowId: removeInfo.windowId,
   });
   if (noActiveTab) {
     const defaultHomepage = await getDefaultHomepage();
-    browser.tabs.create({
-      url: defaultHomepage,
-      windowId: removeInfo.windowId,
-    });
+    createHomepageTab(defaultHomepage, removeInfo.windowId, true);
   }
 });
 
@@ -70,7 +101,7 @@ browser.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
     const noActiveTab = await checkNoActiveTab(tabs[0]);
     if (noActiveTab) {
       const defaultHomepage = await getDefaultHomepage();
-      browser.tabs.create({ url: defaultHomepage, windowId: tabs[0].windowId });
+      createHomepageTab(defaultHomepage, tabs[0].windowId);
     }
   }
 });
