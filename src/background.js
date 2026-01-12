@@ -71,10 +71,8 @@ async function checkNoActiveTab(tabToExclude = null) {
   const homepageUrl = browser.runtime.getURL("home/index.html");
 
   const allRealTabs = allTabs.filter(
-    (tab) =>
-      tab.pinned === false &&
-      tab.id !== tabToExclude?.id &&
-      tab.url !== homepageUrl
+    (tab) => tab.pinned === false && tab.id !== tabToExclude?.id
+    // && tab.url !== homepageUrl
   );
   console.log("Number of real tabs in window:", allRealTabs.length);
   console.log("Real tabs:", allRealTabs);
@@ -130,19 +128,6 @@ browser.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
     createHomepageTab(defaultHomepage, removeInfo.windowId, true);
   }
 });
-
-// Check and redirect a tab if its URL is empty or invalid
-// Add a delay to avoid conflicts with chrome_url_overrides.newtab
-setTimeout(async () => {
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  if (tabs.length > 0) {
-    const noActiveTab = await checkNoActiveTab(tabs[0]);
-    if (noActiveTab) {
-      const defaultHomepage = await getDefaultHomepage();
-      createHomepageTab(defaultHomepage, tabs[0].windowId);
-    }
-  }
-}, 500);
 
 // Listen for storage changes
 browser.storage.onChanged.addListener((changes, areaName) => {

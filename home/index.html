@@ -34,6 +34,13 @@
       </div>
 
       <div class="shortcuts-container">
+        <div class="edit-mode-banner" id="editModeBanner">
+          <span>
+            <img src="../icons/edit.svg" alt="Edit" /> Edit Mode - Click on a
+            shortcut to edit or on ✕ to delete</span
+          >
+          <button class="done-editing-btn" id="doneEditingBtn">Done</button>
+        </div>
         <div class="shortcuts-grid" id="shortcutsGrid">
           <!-- Shortcuts will be added here dynamically -->
         </div>
@@ -41,12 +48,8 @@
     </div>
 
     <div class="config-buttons">
-      <button class="edit-btn" id="editBtn" title="Edit shortcuts">
-        <img src="../icons/settings.svg" alt="Edit" />
-      </button>
-
-      <button class="settings-btn" id="settingsBtn" title="Search settings">
-        <img src="../icons/search.svg" alt="Search" />
+      <button class="settings-btn" id="settingsBtn" title="Settings">
+        <img src="../icons/settings.svg" alt="Settings" />
       </button>
     </div>
 
@@ -73,12 +76,47 @@
       </div>
     </div>
 
+    <!-- Modal for editing a shortcut -->
+    <div class="modal" id="editShortcutModal">
+      <div class="modal-content">
+        <h2 class="modal-title">Edit Shortcut</h2>
+        <input
+          type="text"
+          class="modal-input"
+          id="editShortcutName"
+          placeholder="Name (e.g., GitHub)"
+        />
+        <input
+          type="text"
+          class="modal-input"
+          id="editShortcutUrl"
+          placeholder="URL (e.g., https://github.com)"
+        />
+        <div class="modal-buttons">
+          <button class="modal-btn" id="cancelEditBtn">Cancel</button>
+          <button class="modal-btn primary" id="saveEditBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal for search engine settings -->
     <div class="modal" id="searchSettingsModal">
       <div class="modal-content modal-large">
-        <h2 class="modal-title">Search Engine Settings</h2>
+        <h2 class="modal-title">Settings</h2>
 
         <div class="settings-section">
+          <h3 class="settings-subtitle">Shortcuts</h3>
+          <button
+            class="modal-btn primary"
+            id="editShortcutsBtn"
+            style="width: 100%; margin-bottom: 1rem"
+          >
+            Edit Shortcuts
+          </button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-subtitle">Search Engine</h3>
           <label class="settings-label">
             <input
               type="checkbox"
@@ -89,7 +127,7 @@
           </label>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" style="margin-top: 1.5rem">
           <h3 class="settings-subtitle">Popular Search Engines</h3>
           <div class="search-engines-grid">
             <button class="engine-option" data-engine="google">

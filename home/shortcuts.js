@@ -1,6 +1,7 @@
 // Shortcuts management
 let isEditMode = false;
 let shortcuts = [];
+let editingIndex = -1;
 
 // Load shortcuts from storage
 function loadShortcuts() {
@@ -9,7 +10,7 @@ function loadShortcuts() {
     shortcuts = JSON.parse(stored);
   } else {
     shortcuts = [
-      { name: "GitHub", url: "https://github.com" },
+      { name: "Reddit", url: "https://reddit.com" },
       { name: "YouTube", url: "https://youtube.com" },
       { name: "Gmail", url: "https://gmail.com" },
     ];
@@ -67,7 +68,6 @@ async function renderShortcuts() {
     const item = document.createElement("a");
     item.className = "shortcut-item";
     item.href = shortcut.url;
-    item.target = "_blank";
     item.rel = "noopener noreferrer";
 
     const icon = document.createElement("div");
@@ -97,6 +97,15 @@ async function renderShortcuts() {
       e.stopPropagation();
       removeShortcut(index);
     };
+
+    // In edit mode, clicking the shortcut opens edit modal
+    if (isEditMode) {
+      item.onclick = function (e) {
+        e.preventDefault();
+        openEditModal(index);
+      };
+      item.style.cursor = "pointer";
+    }
 
     item.appendChild(removeBtn);
     item.appendChild(icon);
@@ -141,15 +150,19 @@ function removeShortcut(index) {
 // Toggle edit mode
 function toggleEditMode() {
   isEditMode = !isEditMode;
-  const editBtn = document.getElementById("editBtn");
   const grid = document.getElementById("shortcutsGrid");
+  const banner = document.getElementById("editModeBanner");
 
   if (isEditMode) {
-    editBtn.classList.add("active");
     grid.classList.add("edit-mode");
+    if (banner) {
+      banner.classList.add("active");
+    }
   } else {
-    editBtn.classList.remove("active");
     grid.classList.remove("edit-mode");
+    if (banner) {
+      banner.classList.remove("active");
+    }
   }
 
   renderShortcuts();
@@ -166,6 +179,44 @@ function openAddModal() {
 // Close add shortcut modal
 function closeAddModal() {
   document.getElementById("addShortcutModal").classList.remove("active");
+}
+
+// Open edit shortcut modal
+function openEditModal(index) {
+  editingIndex = index;
+  const shortcut = shortcuts[index];
+  document.getElementById("editShortcutName").value = shortcut.name;
+  document.getElementById("editShortcutUrl").value = shortcut.url;
+  document.getElementById("editShortcutModal").classList.add("active");
+  document.getElementById("editShortcutName").focus();
+}
+
+// Close edit shortcut modal
+function closeEditModal() {
+  document.getElementById("editShortcutModal").classList.remove("active");
+  editingIndex = -1;
+}
+
+// Save edited shortcut
+function saveEditedShortcut() {
+  const name = document.getElementById("editShortcutName").value.trim();
+  const url = document.getElementById("editShortcutUrl").value.trim();
+
+  if (!name || !url) {
+    alert("Please enter both name and URL");
+    return;
+  }
+
+  // Add https:// if not present
+  let finalUrl = url;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    finalUrl = "https://" + url;
+  }
+
+  shortcuts[editingIndex] = { name, url: finalUrl };
+  saveShortcuts();
+  renderShortcuts();
+  closeEditModal();
 }
 
 // Add shortcut
@@ -194,12 +245,35 @@ function addShortcut() {
 document.addEventListener("DOMContentLoaded", () => {
   loadShortcuts();
 
-  // Edit button
-  document.getElementById("editBtn").addEventListener("click", toggleEditMode);
+  // Edit Shortcuts button (inside settings modal)
+  const editShortcutsBtn = document.getElementById("editShortcutsBtn");
+  if (editShortcutsBtn) {
+    editShortcutsBtn.addEventListener("click", () => {
+      toggleEditMode();
+      // Close settings modal when entering edit mode
+      document.getElementById("searchSettingsModal").classList.remove("active");
+    });
+  }
 
-  // Modal buttons
+  // Done editing button
+  const doneEditingBtn = document.getElementById("doneEditingBtn");
+  if (doneEditingBtn) {
+    doneEditingBtn.addEventListener("click", toggleEditMode);
+  }
+
+  // Add shortcut modal buttons
   document.getElementById("cancelBtn").addEventListener("click", closeAddModal);
   document.getElementById("saveBtn").addEventListener("click", addShortcut);
+
+  // Edit shortcut modal buttons
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+  const saveEditBtn = document.getElementById("saveEditBtn");
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", closeEditModal);
+  }
+  if (saveEditBtn) {
+    saveEditBtn.addEventListener("click", saveEditedShortcut);
+  }
 
   // Close modal on background click
   document
@@ -210,10 +284,30 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  // Enter key to save in modal
+  // Close edit modal on background click
+  const editModal = document.getElementById("editShortcutModal");
+  if (editModal) {
+    editModal.addEventListener("click", function (e) {
+      if (e.target === this) {
+        closeEditModal();
+      }
+    });
+  }
+
+  // Enter key to save in add modal
   document.getElementById("shortcutUrl").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       addShortcut();
     }
   });
+
+  // Enter key to save in edit modal
+  const editShortcutUrl = document.getElementById("editShortcutUrl");
+  if (editShortcutUrl) {
+    editShortcutUrl.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        saveEditedShortcut();
+      }
+    });
+  }
 });

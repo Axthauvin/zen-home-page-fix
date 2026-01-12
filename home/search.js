@@ -33,7 +33,7 @@ const searchEngines = {
 };
 
 let currentEngine = "google";
-let showLogo = false;
+let showLogo = true;
 let customEngine = null;
 
 // Load search settings
