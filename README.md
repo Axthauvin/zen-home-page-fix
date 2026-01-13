@@ -44,6 +44,20 @@ Click on the extension icon in your toolbar to open the configuration popup. Her
 ![The config](github/config.png)
 ![Popup window](github/popup.png)
 
+## Images / Wallpapers
+
+This extension supports customizable wallpapers for the built-in homepage. You can:
+
+- Upload an image (drag & drop or file picker)
+- Use a solid color as background
+- Use the "Bing Image of the Day" feature to automatically fetch and store the daily Bing image
+- Apply visual effects: opacity, blur and grain
+
+Preview and control these options from the Settings (click the gear icon in the lower-right of the homepage). Example UI screenshots:
+
+![Background selector](github/background_image.png)
+![Homepage with wallpaper](github/wallpaper.png)
+
 ## Contributing
 
 Please contribute! Whether you're fixing bugs, adding features, or improving documentation, your help makes this project better for everyone.
