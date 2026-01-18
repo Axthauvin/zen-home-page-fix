@@ -1,7 +1,7 @@
 # <img src="icons/favicon-48x48.png" alt="Zen Homepage Fixer" width="32" style="vertical-align: middle;"> Zen - Homepage Fixer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Zen Extension](https://img.shields.io/badge/Zen-Compatible-FF7139?logo=firefox)](https://zen-browser.app/)
+[![Zen Extension](https://img.shields.io/badge/Zen-Compatible-FF7139?logo=zen-browser)](https://zen-browser.app/)
 [![GitHub Release](https://img.shields.io/github/v/release/Axthauvin/zen-home-page-fix?include_prereleases)](https://github.com/Axthauvin/zen-home-page-fix/releases)
 
 A Firefox extension that automatically opens a customizable homepage when the last tab is closed in [Zen browser](https://zen-browser.app/).
