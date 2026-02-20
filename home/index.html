@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home</title>
+    <script>
+      (function () {
+        var t = localStorage.getItem("zenThemeCache") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+        var c = localStorage.getItem("zenBgColorCache_" + t);
+        if (c) document.documentElement.style.setProperty("--zen-paper", c);
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -49,7 +55,9 @@
 
     <div class="config-buttons">
       <button class="settings-btn" id="settingsBtn" title="Settings">
-        <img src="../icons/settings.svg" alt="Settings" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.65 3L9.93163 3.53449L9.32754 5.54812L7.47651 4.55141L6.5906 4.68143L4.68141 6.59062L4.55139 7.47652L5.5481 9.32755L3.53449 9.93163L3 10.65V13.35L3.53449 14.0684L5.54811 14.6725L4.55142 16.5235L4.68144 17.4094L6.59063 19.3186L7.47653 19.4486L9.32754 18.4519L9.93163 20.4655L10.65 21H13.35L14.0684 20.4655L14.6725 18.4519L16.5235 19.4486L17.4094 19.3185L19.3186 17.4094L19.4486 16.5235L18.4519 14.6724L20.4655 14.0684L21 13.35V10.65L20.4655 9.93163L18.4519 9.32754L19.4486 7.47654L19.3186 6.59063L17.4094 4.68144L16.5235 4.55142L14.6725 5.54812L14.0684 3.53449L13.35 3H10.65ZM10.4692 6.96284L11.208 4.5H12.792L13.5308 6.96284L13.8753 7.0946C13.9654 7.12908 14.0543 7.16597 14.142 7.2052L14.4789 7.35598L16.7433 6.13668L17.8633 7.25671L16.644 9.52111L16.7948 9.85803C16.834 9.9457 16.8709 10.0346 16.9054 10.1247L17.0372 10.4692L19.5 11.208V12.792L17.0372 13.5308L16.9054 13.8753C16.8709 13.9654 16.834 14.0543 16.7948 14.1419L16.644 14.4789L17.8633 16.7433L16.7433 17.8633L14.4789 16.644L14.142 16.7948C14.0543 16.834 13.9654 16.8709 13.8753 16.9054L13.5308 17.0372L12.792 19.5H11.208L10.4692 17.0372L10.1247 16.9054C10.0346 16.8709 9.94569 16.834 9.85803 16.7948L9.52111 16.644L7.25671 17.8633L6.13668 16.7433L7.35597 14.4789L7.2052 14.142C7.16597 14.0543 7.12908 13.9654 7.0946 13.8753L6.96284 13.5308L4.5 12.792L4.5 11.208L6.96284 10.4692L7.0946 10.1247C7.12907 10.0346 7.16596 9.94571 7.20519 9.85805L7.35596 9.52113L6.13666 7.2567L7.25668 6.13667L9.5211 7.35598L9.85803 7.2052C9.9457 7.16597 10.0346 7.12908 10.1247 7.0946L10.4692 6.96284ZM14.25 12C14.25 13.2426 13.2426 14.25 12 14.25C10.7574 14.25 9.75 13.2426 9.75 12C9.75 10.7574 10.7574 9.75 12 9.75C13.2426 9.75 14.25 10.7574 14.25 12ZM15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z" fill="currentColor"/>
+        </svg>
       </button>
     </div>
 
@@ -105,6 +113,15 @@
         <h2 class="modal-title">Settings</h2>
 
         <div class="settings-section">
+          <h3 class="settings-subtitle">Appearance</h3>
+          <div class="theme-selector">
+            <button class="theme-option" data-theme="dark">Dark</button>
+            <button class="theme-option" data-theme="light">Light</button>
+            <button class="theme-option" data-theme="system">System</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3 class="settings-subtitle">Shortcuts</h3>
           <button
             class="modal-btn primary"
@@ -144,15 +161,6 @@
 
           <!-- Collapsible Background Content -->
           <div id="backgroundContent" style="display: block">
-            <!-- Live Preview -->
-            <div class="wallpaper-live-preview" id="wallpaperLivePreview">
-              <div class="preview-background" id="previewBackground">
-                <div class="preview-content" id="previewContent">
-                  <span class="preview-label">Live Preview</span>
-                </div>
-              </div>
-            </div>
-
             <!-- Tab Navigation -->
             <div class="background-tabs" style="margin-top: 1rem">
               <button class="tab-btn active" id="colorTab" data-tab="color">
@@ -169,28 +177,59 @@
               <div class="tab-content active" id="colorTabContent">
                 <div style="margin-top: 1rem">
                   <label class="settings-label" style="margin-bottom: 0.75rem">
-                    <span>Choose a solid background color:</span>
+                    <span>Background color per theme:</span>
                   </label>
-                  <div style="display: flex; gap: 0.5rem; align-items: center">
-                    <input
-                      type="color"
-                      id="wallpaperColor"
-                      value="#1f1f1f"
-                      class="color-picke"
-                    />
-                    <button
-                      class="modal-btn primary"
-                      id="applyColorBtn"
-                      style="flex: 1; margin: 0"
-                    >
-                      Apply Color
-                    </button>
+                  <div class="theme-color-grid">
+                    <div class="theme-color-item">
+                      <div
+                        class="theme-color-swatch"
+                        id="darkColorSwatch"
+                        style="background-color: #1f1f1f"
+                      >
+                        <input
+                          type="color"
+                          id="wallpaperColorDark"
+                          value="#1f1f1f"
+                        />
+                      </div>
+                      <span class="theme-color-label">dark</span>
+                    </div>
+                    <div class="theme-color-item">
+                      <div
+                        class="theme-color-swatch"
+                        id="lightColorSwatch"
+                        style="background-color: #f5f3ec"
+                      >
+                        <input
+                          type="color"
+                          id="wallpaperColorLight"
+                          value="#f5f3ec"
+                        />
+                      </div>
+                      <span class="theme-color-label">light</span>
+                    </div>
                   </div>
+                  <button
+                    class="modal-btn primary"
+                    id="applyColorBtn"
+                    style="width: 100%; margin: 0.75rem 0 0"
+                  >
+                    Apply Colors
+                  </button>
                 </div>
               </div>
 
               <!-- Image Tab Content -->
               <div class="tab-content" id="imageTabContent">
+                <!-- Live Preview -->
+                <div class="wallpaper-live-preview" id="wallpaperLivePreview" style="margin-top: 1rem">
+                  <div class="preview-background" id="previewBackground">
+                    <div class="preview-content" id="previewContent">
+                      <span class="preview-label">Live Preview</span>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Drag and Drop Area -->
                 <div
                   class="drag-drop-area"
@@ -243,7 +282,7 @@
                     style="
                       display: block;
                       margin-bottom: 1rem;
-                      color: rgba(209, 207, 192, 0.7);
+                      color: rgba(var(--zen-dark-rgb), 0.7);
                       font-size: 0.9rem;
                     "
                     >Effects</span
@@ -314,7 +353,7 @@
                 id="resetAllBtn"
                 style="
                   flex: 1;
-                  background: rgba(209, 207, 192, 0.1);
+                  background: rgba(var(--zen-dark-rgb), 0.1);
                   color: var(--zen-dark);
                   margin: 0;
                 "
