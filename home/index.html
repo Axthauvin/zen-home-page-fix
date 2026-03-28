@@ -4,14 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home</title>
-    <script>
-      (function () {
-        var t = localStorage.getItem("zenThemeCache") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", t);
-        var c = localStorage.getItem("zenBgColorCache_" + t);
-        if (c) document.documentElement.style.setProperty("--zen-paper", c);
-      })();
-    </script>
+    <script src="loadTheme.js"></script>
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
