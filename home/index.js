@@ -189,9 +189,14 @@ async function fetchBingImageOfTheDay() {
 // ===== Theme functionality =====
 
 const THEME_BG_DEFAULTS = { dark: "#1f1f1f", light: "#f5f3ec" };
+const THEME_BG_KEYS = { dark: "zenBgColorDark", light: "zenBgColorLight" };
+
+function resolveSystemTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
 function getThemeBgKey(theme) {
-  return "zenBgColor" + theme.charAt(0).toUpperCase() + theme.slice(1);
+  return THEME_BG_KEYS[theme === "system" ? resolveSystemTheme() : theme];
 }
 
 function applyThemeBgColor(hexColor) {
@@ -203,13 +208,7 @@ function applyThemeBgColor(hexColor) {
 }
 
 function loadThemeBgColor(theme) {
-  let key;
-  if (theme === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    key = prefersDark ? "zenBgColorDark" : "zenBgColorLight";
-  } else {
-    key = getThemeBgKey(theme);
-  }
+  const key = getThemeBgKey(theme);
   browser.storage.local.get(key, function (result) {
     const color = result[key] || null;
     applyThemeBgColor(color);
@@ -260,6 +259,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const dragDropArea = document.getElementById("dragDropArea");
   const wallpaperColorDark = document.getElementById("wallpaperColorDark");
   const wallpaperColorLight = document.getElementById("wallpaperColorLight");
+  const darkColorSwatch = document.getElementById("darkColorSwatch");
+  const lightColorSwatch = document.getElementById("lightColorSwatch");
   const applyColorBtn = document.getElementById("applyColorBtn");
   const effectsControls = document.getElementById("effectsControls");
   const opacitySlider = document.getElementById("wallpaperOpacity");
@@ -375,14 +376,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Live swatch color update as user drags the color picker
   if (wallpaperColorDark) {
     wallpaperColorDark.addEventListener("input", function () {
-      const swatch = document.getElementById("darkColorSwatch");
-      if (swatch) swatch.style.backgroundColor = this.value;
+      if (darkColorSwatch) darkColorSwatch.style.backgroundColor = this.value;
     });
   }
   if (wallpaperColorLight) {
     wallpaperColorLight.addEventListener("input", function () {
-      const swatch = document.getElementById("lightColorSwatch");
-      if (swatch) swatch.style.backgroundColor = this.value;
+      if (lightColorSwatch) lightColorSwatch.style.backgroundColor = this.value;
     });
   }
 
@@ -390,28 +389,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const settingsBtn = document.getElementById("settingsBtn");
   if (settingsBtn) {
     settingsBtn.addEventListener("click", function () {
-      browser.storage.local.get("zenTheme", function (result) {
-        const theme = result.zenTheme || "dark";
-        document.querySelectorAll(".theme-option").forEach(function (btn) {
-          btn.classList.toggle("active", btn.dataset.theme === theme);
-        });
-        browser.storage.local.get(
-          ["zenBgColorDark", "zenBgColorLight"],
-          function (colors) {
-            const darkColor = colors.zenBgColorDark || THEME_BG_DEFAULTS.dark;
-            const lightColor = colors.zenBgColorLight || THEME_BG_DEFAULTS.light;
-            const darkSwatch = document.getElementById("darkColorSwatch");
-            const lightSwatch = document.getElementById("lightColorSwatch");
-            if (wallpaperColorDark) wallpaperColorDark.value = darkColor;
-            if (wallpaperColorLight) wallpaperColorLight.value = lightColor;
-            if (darkSwatch) darkSwatch.style.backgroundColor = darkColor;
-            if (lightSwatch) lightSwatch.style.backgroundColor = lightColor;
-          }
-        );
-      });
-
       browser.storage.local.get(
         [
+          "zenTheme",
+          THEME_BG_KEYS.dark,
+          THEME_BG_KEYS.light,
           "wallpaperImage",
           "wallpaperOpacity",
           "wallpaperBlur",
@@ -420,6 +402,18 @@ document.addEventListener("DOMContentLoaded", function () {
           "backgroundSectionOpen",
         ],
         function (result) {
+          const theme = result.zenTheme || "dark";
+          document.querySelectorAll(".theme-option").forEach(function (btn) {
+            btn.classList.toggle("active", btn.dataset.theme === theme);
+          });
+
+          const darkColor = result[THEME_BG_KEYS.dark] || THEME_BG_DEFAULTS.dark;
+          const lightColor = result[THEME_BG_KEYS.light] || THEME_BG_DEFAULTS.light;
+          if (wallpaperColorDark) wallpaperColorDark.value = darkColor;
+          if (wallpaperColorLight) wallpaperColorLight.value = lightColor;
+          if (darkColorSwatch) darkColorSwatch.style.backgroundColor = darkColor;
+          if (lightColorSwatch) lightColorSwatch.style.backgroundColor = lightColor;
+
           const opacity =
             result.wallpaperOpacity !== undefined
               ? result.wallpaperOpacity
@@ -470,27 +464,20 @@ document.addEventListener("DOMContentLoaded", function () {
           } else {
             updatePreview(null, 50, 0, 0, isImageTab);
             toggleEffectsControls(false);
-            const currentTheme =
-              document.documentElement.getAttribute("data-theme") || "dark";
-            const resolvedKey =
-              currentTheme === "system"
-                ? window.matchMedia("(prefers-color-scheme: dark)").matches
-                  ? "zenBgColorDark"
-                  : "zenBgColorLight"
-                : getThemeBgKey(currentTheme);
-            browser.storage.local.get(resolvedKey, function (cr) {
-              if (cr[resolvedKey]) {
-                const pb = document.getElementById("previewBackground");
-                const pc = document.getElementById("previewContent");
-                if (pb) {
-                  pb.style.backgroundImage = "none";
-                  pb.style.backgroundColor = cr[resolvedKey];
-                  pb.style.opacity = 1;
-                  pb.style.filter = "none";
-                }
-                if (pc) pc.style.display = "none";
+            const resolvedKey = getThemeBgKey(
+              document.documentElement.getAttribute("data-theme") || "dark"
+            );
+            if (result[resolvedKey]) {
+              const pb = document.getElementById("previewBackground");
+              const pc = document.getElementById("previewContent");
+              if (pb) {
+                pb.style.backgroundImage = "none";
+                pb.style.backgroundColor = result[resolvedKey];
+                pb.style.opacity = 1;
+                pb.style.filter = "none";
               }
-            });
+              if (pc) pc.style.display = "none";
+            }
           }
         }
       );
@@ -613,22 +600,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const lightColor = wallpaperColorLight ? wallpaperColorLight.value : THEME_BG_DEFAULTS.light;
 
       browser.storage.local.set({
-        zenBgColorDark: darkColor,
-        zenBgColorLight: lightColor,
+        [THEME_BG_KEYS.dark]: darkColor,
+        [THEME_BG_KEYS.light]: lightColor,
       });
       localStorage.setItem("zenBgColorCache_dark", darkColor);
       localStorage.setItem("zenBgColorCache_light", lightColor);
 
       const theme =
         document.documentElement.getAttribute("data-theme") || "dark";
-      let colorToApply = darkColor;
-      if (theme === "light") {
-        colorToApply = lightColor;
-      } else if (theme === "system") {
-        colorToApply = window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? darkColor
-          : lightColor;
-      }
+      const resolved = theme === "system" ? resolveSystemTheme() : theme;
+      const colorToApply = resolved === "light" ? lightColor : darkColor;
       applyThemeBgColor(colorToApply);
 
       const pb = document.getElementById("previewBackground");
@@ -687,8 +668,8 @@ document.addEventListener("DOMContentLoaded", function () {
           "wallpaperGrain",
           "isBingImage",
           "bingImageDate",
-          "zenBgColorDark",
-          "zenBgColorLight",
+          THEME_BG_KEYS.dark,
+          THEME_BG_KEYS.light,
         ]);
         localStorage.removeItem("zenBgColorCache_dark");
         localStorage.removeItem("zenBgColorCache_light");
@@ -702,10 +683,8 @@ document.addEventListener("DOMContentLoaded", function () {
         wallpaperUpload.value = "";
         if (wallpaperColorDark) wallpaperColorDark.value = THEME_BG_DEFAULTS.dark;
         if (wallpaperColorLight) wallpaperColorLight.value = THEME_BG_DEFAULTS.light;
-        const dSwatch = document.getElementById("darkColorSwatch");
-        const lSwatch = document.getElementById("lightColorSwatch");
-        if (dSwatch) dSwatch.style.backgroundColor = THEME_BG_DEFAULTS.dark;
-        if (lSwatch) lSwatch.style.backgroundColor = THEME_BG_DEFAULTS.light;
+        if (darkColorSwatch) darkColorSwatch.style.backgroundColor = THEME_BG_DEFAULTS.dark;
+        if (lightColorSwatch) lightColorSwatch.style.backgroundColor = THEME_BG_DEFAULTS.light;
 
         // Reset sliders
         opacitySlider.value = 50;

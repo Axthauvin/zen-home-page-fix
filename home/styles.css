@@ -1,5 +1,9 @@
 /* Style of the Zen Home Page */
 
+:root {
+  --accent-color: rgb(247, 111, 83);
+}
+
 /* Dark theme — default */
 :root,
 html[data-theme="dark"] {
@@ -8,7 +12,6 @@ html[data-theme="dark"] {
   --zen-dark-rgb: 209, 207, 192;
   --zen-muted: rgba(255, 255, 255, 0.05);
   --zen-subtle: rgba(255, 255, 255, 0.1);
-  --accent-color: rgb(247, 111, 83);
 }
 
 /* Light theme */
@@ -18,7 +21,6 @@ html[data-theme="light"] {
   --zen-dark-rgb: 42, 40, 38;
   --zen-muted: rgba(0, 0, 0, 0.04);
   --zen-subtle: rgba(0, 0, 0, 0.08);
-  --accent-color: rgb(247, 111, 83);
 }
 
 /* System theme — delegates to OS preference */
@@ -29,7 +31,6 @@ html[data-theme="light"] {
     --zen-dark-rgb: 42, 40, 38;
     --zen-muted: rgba(0, 0, 0, 0.04);
     --zen-subtle: rgba(0, 0, 0, 0.08);
-    --accent-color: rgb(247, 111, 83);
   }
 }
 
@@ -40,7 +41,6 @@ html[data-theme="light"] {
     --zen-dark-rgb: 209, 207, 192;
     --zen-muted: rgba(255, 255, 255, 0.05);
     --zen-subtle: rgba(255, 255, 255, 0.1);
-    --accent-color: rgb(247, 111, 83);
   }
 }
 
