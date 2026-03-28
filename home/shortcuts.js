@@ -3,6 +3,7 @@ let isEditMode = false;
 let shortcuts = [];
 let editingIndex = -1;
 let hoveredShortcutIndex = -1;
+let escapeHandler = null;
 
 // Load shortcuts from storage
 function loadShortcuts() {
@@ -155,10 +156,29 @@ function toggleEditMode() {
     if (banner) {
       banner.classList.add("active");
     }
+    if (escapeHandler) {
+      document.removeEventListener("keydown", escapeHandler);
+    }
+    const addModal = document.getElementById("addShortcutModal");
+    escapeHandler = function (e) {
+      if (e.key !== "Escape") return;
+      if (editingIndex !== -1) {
+        closeEditModal();
+      } else if (addModal && addModal.classList.contains("active")) {
+        closeAddModal();
+      } else {
+        toggleEditMode();
+      }
+    };
+    document.addEventListener("keydown", escapeHandler);
   } else {
     grid.classList.remove("edit-mode");
     if (banner) {
       banner.classList.remove("active");
+    }
+    if (escapeHandler) {
+      document.removeEventListener("keydown", escapeHandler);
+      escapeHandler = null;
     }
   }
 
