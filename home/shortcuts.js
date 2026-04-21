@@ -2,6 +2,8 @@
 let isEditMode = false;
 let shortcuts = [];
 let editingIndex = -1;
+let hoveredShortcutIndex = -1;
+let escapeHandler = null;
 
 // Load shortcuts from storage
 function loadShortcuts() {
@@ -57,6 +59,7 @@ async function getFaviconUrl(url) {
 async function renderShortcuts() {
   const grid = document.getElementById("shortcutsGrid");
   grid.innerHTML = "";
+  hoveredShortcutIndex = -1;
 
   // Fetch all favicons first to maintain order
   const faviconPromises = shortcuts.map((shortcut) =>
@@ -107,37 +110,32 @@ async function renderShortcuts() {
       item.style.cursor = "pointer";
     }
 
+    item.dataset.index = index;
     item.appendChild(removeBtn);
     item.appendChild(icon);
     item.appendChild(name);
     grid.appendChild(item);
   });
 
-  // Add "Add shortcut" button in edit mode
-  if (isEditMode) {
-    const addItem = document.createElement("div");
-    addItem.className = "shortcut-item shortcut-add";
-    addItem.onclick = openAddModal;
+  // Add "Add shortcut" button (always rendered, revealed on grid hover via CSS)
+  const addItem = document.createElement("div");
+  addItem.className = "shortcut-item shortcut-add";
+  addItem.onclick = openAddModal;
 
-    const icon = document.createElement("div");
-    icon.className = "shortcut-icon";
-    icon.innerHTML = "+";
+  const addIcon = document.createElement("div");
+  addIcon.className = "shortcut-icon";
+  addIcon.innerHTML = "+";
 
-    const name = document.createElement("div");
-    name.className = "shortcut-name";
-    name.textContent = "Add";
+  const addName = document.createElement("div");
+  addName.className = "shortcut-name";
+  addName.textContent = "Add";
 
-    addItem.appendChild(icon);
-    addItem.appendChild(name);
-    grid.appendChild(addItem);
-  }
+  addItem.appendChild(addIcon);
+  addItem.appendChild(addName);
+  grid.appendChild(addItem);
 
-  // Show/hide grid
-  if (shortcuts.length > 0 || isEditMode) {
-    grid.classList.add("active");
-  } else {
-    grid.classList.remove("active");
-  }
+  // Always show grid
+  grid.classList.add("active");
 }
 
 // Remove shortcut
@@ -158,10 +156,29 @@ function toggleEditMode() {
     if (banner) {
       banner.classList.add("active");
     }
+    if (escapeHandler) {
+      document.removeEventListener("keydown", escapeHandler);
+    }
+    const addModal = document.getElementById("addShortcutModal");
+    escapeHandler = function (e) {
+      if (e.key !== "Escape") return;
+      if (editingIndex !== -1) {
+        closeEditModal();
+      } else if (addModal && addModal.classList.contains("active")) {
+        closeAddModal();
+      } else {
+        toggleEditMode();
+      }
+    };
+    document.addEventListener("keydown", escapeHandler);
   } else {
     grid.classList.remove("edit-mode");
     if (banner) {
       banner.classList.remove("active");
+    }
+    if (escapeHandler) {
+      document.removeEventListener("keydown", escapeHandler);
+      escapeHandler = null;
     }
   }
 
@@ -293,6 +310,26 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Delegated hover tracking on the grid (single listeners, survives re-renders)
+  const shortcutsGrid = document.getElementById("shortcutsGrid");
+  shortcutsGrid.addEventListener("mouseover", (e) => {
+    const item = e.target.closest(".shortcut-item:not(.shortcut-add)");
+    hoveredShortcutIndex = item ? parseInt(item.dataset.index, 10) : -1;
+  });
+  shortcutsGrid.addEventListener("mouseleave", () => {
+    hoveredShortcutIndex = -1;
+  });
+
+  // 'E' key to edit the hovered shortcut
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "e" && e.key !== "E") return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (hoveredShortcutIndex === -1) return;
+    e.preventDefault();
+    if (!isEditMode) toggleEditMode();
+    openEditModal(hoveredShortcutIndex);
+  });
 
   // Enter key to save in add modal
   document.getElementById("shortcutUrl").addEventListener("keypress", (e) => {
