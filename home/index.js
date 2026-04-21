@@ -186,6 +186,69 @@ async function fetchBingImageOfTheDay() {
   }
 }
 
+// ===== Theme functionality =====
+
+const THEME_BG_DEFAULTS = { dark: "#1f1f1f", light: "#f5f3ec" };
+const THEME_BG_KEYS = { dark: "zenBgColorDark", light: "zenBgColorLight" };
+
+function resolveSystemTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function getThemeBgKey(theme) {
+  return THEME_BG_KEYS[theme === "system" ? resolveSystemTheme() : theme];
+}
+
+function applyThemeBgColor(hexColor) {
+  if (hexColor) {
+    document.documentElement.style.setProperty("--zen-paper", hexColor);
+  } else {
+    document.documentElement.style.removeProperty("--zen-paper");
+  }
+}
+
+function loadThemeBgColor(theme) {
+  const key = getThemeBgKey(theme);
+  browser.storage.local.get(key, function (result) {
+    const color = result[key] || null;
+    applyThemeBgColor(color);
+    if (theme !== "system") {
+      if (color) {
+        localStorage.setItem("zenBgColorCache_" + theme, color);
+      } else {
+        localStorage.removeItem("zenBgColorCache_" + theme);
+      }
+    }
+  });
+}
+
+function loadTheme() {
+  browser.storage.local.get("zenTheme", function (result) {
+    const theme = result.zenTheme || "dark";
+    applyTheme(theme);
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("zenThemeCache", theme);
+  const cachedColor = localStorage.getItem("zenBgColorCache_" + theme);
+  if (cachedColor) {
+    document.documentElement.style.setProperty("--zen-paper", cachedColor);
+  } else {
+    document.documentElement.style.removeProperty("--zen-paper");
+  }
+  document.querySelectorAll(".theme-option").forEach(function (btn) {
+    btn.classList.toggle("active", btn.dataset.theme === theme);
+  });
+  loadThemeBgColor(theme);
+}
+
+function saveTheme(theme) {
+  browser.storage.local.set({ zenTheme: theme });
+  applyTheme(theme);
+}
+
 // Handle wallpaper upload
 document.addEventListener("DOMContentLoaded", function () {
   const wallpaperUploadBtn = document.getElementById("wallpaperUploadBtn");
@@ -194,7 +257,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const removeWallpaperBtn = document.getElementById("removeWallpaperBtn");
   const resetAllBtn = document.getElementById("resetAllBtn");
   const dragDropArea = document.getElementById("dragDropArea");
-  const wallpaperColor = document.getElementById("wallpaperColor");
+  const wallpaperColorDark = document.getElementById("wallpaperColorDark");
+  const wallpaperColorLight = document.getElementById("wallpaperColorLight");
+  const darkColorSwatch = document.getElementById("darkColorSwatch");
+  const lightColorSwatch = document.getElementById("lightColorSwatch");
   const applyColorBtn = document.getElementById("applyColorBtn");
   const effectsControls = document.getElementById("effectsControls");
   const opacitySlider = document.getElementById("wallpaperOpacity");
@@ -296,8 +362,28 @@ document.addEventListener("DOMContentLoaded", function () {
     switchTab("image");
   }
 
-  // Load saved wallpaper on page load
+  // Load saved wallpaper and theme on page load
   loadWallpaperSettings();
+  loadTheme();
+
+  // Wire theme toggle buttons
+  document.querySelectorAll(".theme-option").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      saveTheme(btn.dataset.theme);
+    });
+  });
+
+  // Live swatch color update as user drags the color picker
+  if (wallpaperColorDark) {
+    wallpaperColorDark.addEventListener("input", function () {
+      if (darkColorSwatch) darkColorSwatch.style.backgroundColor = this.value;
+    });
+  }
+  if (wallpaperColorLight) {
+    wallpaperColorLight.addEventListener("input", function () {
+      if (lightColorSwatch) lightColorSwatch.style.backgroundColor = this.value;
+    });
+  }
 
   // Load saved settings into UI when settings modal is opened
   const settingsBtn = document.getElementById("settingsBtn");
@@ -305,6 +391,9 @@ document.addEventListener("DOMContentLoaded", function () {
     settingsBtn.addEventListener("click", function () {
       browser.storage.local.get(
         [
+          "zenTheme",
+          THEME_BG_KEYS.dark,
+          THEME_BG_KEYS.light,
           "wallpaperImage",
           "wallpaperOpacity",
           "wallpaperBlur",
@@ -313,6 +402,18 @@ document.addEventListener("DOMContentLoaded", function () {
           "backgroundSectionOpen",
         ],
         function (result) {
+          const theme = result.zenTheme || "dark";
+          document.querySelectorAll(".theme-option").forEach(function (btn) {
+            btn.classList.toggle("active", btn.dataset.theme === theme);
+          });
+
+          const darkColor = result[THEME_BG_KEYS.dark] || THEME_BG_DEFAULTS.dark;
+          const lightColor = result[THEME_BG_KEYS.light] || THEME_BG_DEFAULTS.light;
+          if (wallpaperColorDark) wallpaperColorDark.value = darkColor;
+          if (wallpaperColorLight) wallpaperColorLight.value = lightColor;
+          if (darkColorSwatch) darkColorSwatch.style.backgroundColor = darkColor;
+          if (lightColorSwatch) lightColorSwatch.style.backgroundColor = lightColor;
+
           const opacity =
             result.wallpaperOpacity !== undefined
               ? result.wallpaperOpacity
@@ -363,6 +464,20 @@ document.addEventListener("DOMContentLoaded", function () {
           } else {
             updatePreview(null, 50, 0, 0, isImageTab);
             toggleEffectsControls(false);
+            const resolvedKey = getThemeBgKey(
+              document.documentElement.getAttribute("data-theme") || "dark"
+            );
+            if (result[resolvedKey]) {
+              const pb = document.getElementById("previewBackground");
+              const pc = document.getElementById("previewContent");
+              if (pb) {
+                pb.style.backgroundImage = "none";
+                pb.style.backgroundColor = result[resolvedKey];
+                pb.style.opacity = 1;
+                pb.style.filter = "none";
+              }
+              if (pc) pc.style.display = "none";
+            }
           }
         }
       );
@@ -479,29 +594,33 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Handle color picker
-  if (applyColorBtn && wallpaperColor) {
+  if (applyColorBtn) {
     applyColorBtn.addEventListener("click", function () {
-      const color = wallpaperColor.value;
-      // Create a 1x1 pixel canvas with the selected color
-      const canvas = document.createElement("canvas");
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = color;
-      ctx.fillRect(0, 0, 1, 1);
-      const imageData = canvas.toDataURL();
+      const darkColor = wallpaperColorDark ? wallpaperColorDark.value : THEME_BG_DEFAULTS.dark;
+      const lightColor = wallpaperColorLight ? wallpaperColorLight.value : THEME_BG_DEFAULTS.light;
 
-      // Apply the color without switching tabs
-      const opacity = parseInt(opacitySlider.value);
-      const blur = parseInt(blurSlider.value);
-      const grain = parseInt(grainSlider.value);
+      browser.storage.local.set({
+        [THEME_BG_KEYS.dark]: darkColor,
+        [THEME_BG_KEYS.light]: lightColor,
+      });
+      localStorage.setItem("zenBgColorCache_dark", darkColor);
+      localStorage.setItem("zenBgColorCache_light", lightColor);
 
-      saveWallpaperSettings(imageData, opacity, blur, grain);
-      applyWallpaper(imageData, opacity, blur, grain);
-      updatePreview(imageData, opacity, blur, grain, false);
-      toggleEffectsControls(true);
+      const theme =
+        document.documentElement.getAttribute("data-theme") || "dark";
+      const resolved = theme === "system" ? resolveSystemTheme() : theme;
+      const colorToApply = resolved === "light" ? lightColor : darkColor;
+      applyThemeBgColor(colorToApply);
 
-      // Stay on color tab
+      const pb = document.getElementById("previewBackground");
+      const pc = document.getElementById("previewContent");
+      if (pb) {
+        pb.style.backgroundImage = "none";
+        pb.style.backgroundColor = colorToApply;
+        pb.style.opacity = 1;
+        pb.style.filter = "none";
+      }
+      if (pc) pc.style.display = "none";
     });
   }
 
@@ -549,7 +668,12 @@ document.addEventListener("DOMContentLoaded", function () {
           "wallpaperGrain",
           "isBingImage",
           "bingImageDate",
+          THEME_BG_KEYS.dark,
+          THEME_BG_KEYS.light,
         ]);
+        localStorage.removeItem("zenBgColorCache_dark");
+        localStorage.removeItem("zenBgColorCache_light");
+        applyThemeBgColor(null);
         applyWallpaper(null, 50, 0, 0);
         const currentTab = imageTab.classList.contains("active")
           ? "image"
@@ -557,7 +681,10 @@ document.addEventListener("DOMContentLoaded", function () {
         updatePreview(null, 50, 0, 0, currentTab === "image");
         toggleEffectsControls(false);
         wallpaperUpload.value = "";
-        wallpaperColor.value = "#1f1f1f";
+        if (wallpaperColorDark) wallpaperColorDark.value = THEME_BG_DEFAULTS.dark;
+        if (wallpaperColorLight) wallpaperColorLight.value = THEME_BG_DEFAULTS.light;
+        if (darkColorSwatch) darkColorSwatch.style.backgroundColor = THEME_BG_DEFAULTS.dark;
+        if (lightColorSwatch) lightColorSwatch.style.backgroundColor = THEME_BG_DEFAULTS.light;
 
         // Reset sliders
         opacitySlider.value = 50;

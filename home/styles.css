@@ -1,11 +1,47 @@
 /* Style of the Zen Home Page */
 
 :root {
+  --accent-color: rgb(247, 111, 83);
+}
+
+/* Dark theme — default */
+:root,
+html[data-theme="dark"] {
   --zen-paper: #1f1f1f;
   --zen-dark: #d1cfc0;
+  --zen-dark-rgb: 209, 207, 192;
   --zen-muted: rgba(255, 255, 255, 0.05);
   --zen-subtle: rgba(255, 255, 255, 0.1);
-  --accent-color: rgb(247, 111, 83);
+}
+
+/* Light theme */
+html[data-theme="light"] {
+  --zen-paper: #f5f3ec;
+  --zen-dark: #2a2826;
+  --zen-dark-rgb: 42, 40, 38;
+  --zen-muted: rgba(0, 0, 0, 0.04);
+  --zen-subtle: rgba(0, 0, 0, 0.08);
+}
+
+/* System theme — delegates to OS preference */
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] {
+    --zen-paper: #f5f3ec;
+    --zen-dark: #2a2826;
+    --zen-dark-rgb: 42, 40, 38;
+    --zen-muted: rgba(0, 0, 0, 0.04);
+    --zen-subtle: rgba(0, 0, 0, 0.08);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] {
+    --zen-paper: #1f1f1f;
+    --zen-dark: #d1cfc0;
+    --zen-dark-rgb: 209, 207, 192;
+    --zen-muted: rgba(255, 255, 255, 0.05);
+    --zen-subtle: rgba(255, 255, 255, 0.1);
+  }
 }
 
 * {
@@ -58,7 +94,7 @@ body {
 }
 
 .subtitle {
-  color: rgba(209, 207, 192, 0.5);
+  color: rgba(var(--zen-dark-rgb), 0.5);
   font-size: 1rem;
   margin-bottom: 4rem;
   line-height: 1.8;
@@ -74,8 +110,8 @@ body {
 
 .search-input {
   width: 100%;
-  background: rgba(209, 207, 192, 0.03);
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  background: rgba(var(--zen-dark-rgb), 0.03);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
   border-radius: 12px;
   padding: 1.1rem 1.5rem;
   color: var(--zen-dark);
@@ -93,18 +129,18 @@ body {
 }
 
 .search-input::placeholder {
-  color: rgba(209, 207, 192, 0.3);
+  color: rgba(var(--zen-dark-rgb), 0.3);
   font-style: italic;
   font-weight: 300;
 }
 
 .search-input:focus {
   border-color: var(--zen-subtle);
-  background: rgba(209, 207, 192, 0.05);
+  background: rgba(var(--zen-dark-rgb), 0.05);
 }
 
 .search-input:focus::placeholder {
-  color: rgba(209, 207, 192, 0.2);
+  color: rgba(var(--zen-dark-rgb), 0.2);
   transform: translateX(4px);
 }
 
@@ -255,8 +291,8 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(209, 207, 192, 0.05);
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  background: rgba(var(--zen-dark-rgb), 0.05);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +304,7 @@ body {
 
 .shortcut-item:hover .shortcut-icon {
   border-color: var(--accent-color);
-  background: rgba(209, 207, 192, 0.08);
+  background: rgba(var(--zen-dark-rgb), 0.08);
 }
 
 .edit-mode .shortcut-item .shortcut-icon {
@@ -306,6 +342,7 @@ body {
 }
 
 .shortcut-add {
+  border: 1px dashed rgba(var(--zen-dark-rgb), 0.2);
   background: transparent;
   opacity: 0;
   pointer-events: none;
@@ -332,7 +369,7 @@ body {
   background: transparent;
   border: none;
   font-size: 1.5rem;
-  color: rgba(209, 207, 192, 0.4);
+  color: rgba(var(--zen-dark-rgb), 0.4);
 }
 
 .remove-shortcut {
@@ -375,8 +412,8 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(209, 207, 192, 0.08);
-  border: 1px solid rgba(209, 207, 192, 0.15);
+  background: rgba(var(--zen-dark-rgb), 0.08);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.15);
   color: var(--zen-dark);
   font-size: 1.2rem;
   cursor: pointer;
@@ -388,7 +425,7 @@ body {
 }
 
 .settings-btn:hover {
-  background: rgba(209, 207, 192, 0.12);
+  background: rgba(var(--zen-dark-rgb), 0.12);
   border-color: var(--accent-color);
   transform: scale(1.1);
 }
@@ -413,7 +450,7 @@ body {
 
 .modal-content {
   background: var(--zen-paper);
-  border: 1px solid rgba(209, 207, 192, 0.15);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.15);
   border-radius: 16px;
   padding: 2rem;
   max-width: 400px;
@@ -437,8 +474,8 @@ body {
 
 .modal-input {
   width: 100%;
-  background: rgba(209, 207, 192, 0.03);
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  background: rgba(var(--zen-dark-rgb), 0.03);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   color: var(--zen-dark);
@@ -456,7 +493,7 @@ body {
 
 .modal-input:focus {
   border-color: var(--accent-color);
-  background: rgba(209, 207, 192, 0.05);
+  background: rgba(var(--zen-dark-rgb), 0.05);
 }
 
 .modal-buttons {
@@ -469,7 +506,7 @@ body {
   flex: 1;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  border: 1px solid rgba(209, 207, 192, 0.15);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.15);
   background: transparent;
   color: var(--zen-dark);
   font-family:
@@ -484,7 +521,7 @@ body {
 }
 
 .modal-btn:hover {
-  background: rgba(209, 207, 192, 0.05);
+  background: rgba(var(--zen-dark-rgb), 0.05);
 }
 
 .shortcut-hint {
@@ -606,8 +643,8 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: rgba(209, 207, 192, 0.03);
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  background: rgba(var(--zen-dark-rgb), 0.03);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
   border-radius: 8px;
   color: var(--zen-dark);
   font-family:
@@ -622,7 +659,7 @@ body {
 }
 
 .engine-option:hover {
-  background: rgba(209, 207, 192, 0.08);
+  background: rgba(var(--zen-dark-rgb), 0.08);
   border-color: var(--accent-color);
 }
 
@@ -662,9 +699,9 @@ button svg {
   height: 180px;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid rgba(209, 207, 192, 0.12);
+  border: 2px solid rgba(var(--zen-dark-rgb), 0.12);
   position: relative;
-  background: rgba(209, 207, 192, 0.03);
+  background: rgba(var(--zen-dark-rgb), 0.03);
 }
 
 .preview-background {
@@ -698,7 +735,7 @@ button svg {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: rgba(209, 207, 192, 0.5);
+  color: rgba(var(--zen-dark-rgb), 0.5);
   font-size: 0.9rem;
   font-style: italic;
   pointer-events: none;
@@ -716,10 +753,10 @@ button svg {
 .background-tabs {
   display: flex;
   gap: 0.5rem;
-  background: rgba(209, 207, 192, 0.05);
+  background: rgba(var(--zen-dark-rgb), 0.05);
   padding: 0.25rem;
   border-radius: 10px;
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
 }
 
 .tab-btn {
@@ -728,13 +765,8 @@ button svg {
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: rgba(209, 207, 192, 0.6);
-  font-family:
-    "Vollkorn",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto;
+  color: rgba(var(--zen-dark-rgb), 0.6);
+  font-family: "Vollkorn", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -743,13 +775,13 @@ button svg {
 
 .tab-btn:hover {
   color: var(--zen-dark);
-  background: rgba(209, 207, 192, 0.05);
+  background: rgba(var(--zen-dark-rgb), 0.05);
 }
 
 .tab-btn.active {
   background: var(--zen-paper);
   color: var(--zen-dark);
-  border: 1px solid rgba(209, 207, 192, 0.15);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.15);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -825,7 +857,7 @@ button svg {
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: rgba(209, 207, 192, 0.1);
+  background: rgba(var(--zen-dark-rgb), 0.1);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -864,9 +896,9 @@ button svg {
 .drag-drop-area {
   width: 100%;
   padding: 2rem 1rem;
-  border: 2px dashed rgba(209, 207, 192, 0.3);
+  border: 2px dashed rgba(var(--zen-dark-rgb), 0.3);
   border-radius: 12px;
-  background: rgba(209, 207, 192, 0.03);
+  background: rgba(var(--zen-dark-rgb), 0.03);
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -899,7 +931,7 @@ button svg {
 }
 
 .drag-drop-subtext {
-  color: rgba(209, 207, 192, 0.5);
+  color: rgba(var(--zen-dark-rgb), 0.5);
   font-size: 0.85rem;
   font-style: italic;
 }
@@ -908,7 +940,7 @@ button svg {
 .color-picker {
   width: 60px;
   height: 40px;
-  border: 1px solid rgba(209, 207, 192, 0.12);
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
@@ -917,4 +949,90 @@ button svg {
 
 .color-picker:hover {
   border-color: var(--accent-color);
+}
+
+/* Theme color grid — dual dark/light swatch pickers */
+.theme-color-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.theme-color-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.theme-color-swatch {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.15);
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.theme-color-swatch:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(247, 111, 83, 0.15);
+}
+
+.theme-color-swatch input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.theme-color-label {
+  font-size: 0.78rem;
+  color: rgba(var(--zen-dark-rgb), 0.5);
+  font-family: "Vollkorn", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+}
+
+/* Theme selector */
+.theme-selector {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(var(--zen-dark-rgb), 0.05);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--zen-dark-rgb), 0.12);
+}
+
+.theme-option {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(var(--zen-dark-rgb), 0.6);
+  font-family: "Vollkorn", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 400;
+}
+
+.theme-option:hover {
+  color: var(--zen-dark);
+  background: rgba(var(--zen-dark-rgb), 0.05);
+}
+
+.theme-option.active {
+  background: var(--zen-paper);
+  color: var(--zen-dark);
+  border-color: rgba(var(--zen-dark-rgb), 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
